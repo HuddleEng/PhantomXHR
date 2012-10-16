@@ -1,0 +1,38 @@
+<html>
+
+<head>
+	<title>PhantomXHR: Test Page</title>
+</head>
+
+<body>
+
+<a href="#" id="click-me">Click me</a>
+
+<span id="count"></span>
+
+</body>
+
+<script>
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "r1.js", true);
+	xhr.onload = function(e) {
+		document.getElementById('count').innerHTML = xhr.response.length;
+	}
+	xhr.send();
+
+	document.getElementById('click-me').onclick = function(){
+
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", "r2.js", true);
+		xhr.onload = function(e) {
+			document.getElementById('count').innerHTML = xhr.response.length;
+		}
+		xhr.send();
+
+		return false;
+	};
+
+</script>
+
+</html>
