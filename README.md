@@ -3,8 +3,6 @@ PhantomXHR
 
 Integration of SinonJS's mock XHR interface with PhantomJS
 
-## huddle.xhr.fake
-
 ### The good stuff
 
 * [Controlling response sequences](#sequences)
@@ -16,7 +14,7 @@ Isolating the UI from the API requires the insertion of mocks to simulate server
 
 ```javascript
 
-var xhr = require('./modules/PhantomXHR/phantomxhr.js);
+var xhr = require('./modules/PhantomXHR/phantomxhr.js');
 
 xhr.fake({
   url: /documents\/([0-9]+\?)/,
@@ -56,3 +54,7 @@ deleteRequest.last(); // get the last requestBody it intercepted
 deleteRequest.nthRequest(6); // get the 6th requestBody it intercepted
 deleteRequest.count(); // get the number of requests made
 ```
+
+### Limitations
+
+Cross-domain requests cannot be faked currently.

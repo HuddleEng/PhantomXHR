@@ -4,8 +4,9 @@ exports.requests = getAllRequests;
 
 var page;
 
-function init(initPage){
-	var inject = initPage.injectJs('./modules/PhantomXHR/sinon.js');
+function init(initPage, libraryRoot){
+	var root = libraryRoot ? libraryRoot : '.';
+	var inject = initPage.injectJs(root+'/sinon.js');
 
 	page = initPage;
 
