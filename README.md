@@ -1,7 +1,7 @@
 PhantomXHR
 ==========
 
-Integration of SinonJS's mock XHR interface with PhantomJS
+Integration of SinonJS's mock XHR interface with PhantomJS.  CasperJS is currently required.
 
 ### The good stuff
 
@@ -25,6 +25,10 @@ xhr.fake({
 In the above case, if an API call to 'something/documents/48546?' is made, the JavaScript application will receive the response.  The JS app with then use this fake data to build up the UI.
 
 Note: be careful when defining URL matches, try to keep them specific otherwise you may find that the wrong XHR fake is responding.
+
+### Demo
+
+Please see the demo folder to see an example implementation. (Pssst, it doesn't work though)
 
 ### <a name="sequences"></a> Response sequences
 
