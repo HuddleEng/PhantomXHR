@@ -15,19 +15,29 @@
 <script>
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "r1.js", true);
-	xhr.onload = function(e) {
-		document.getElementById('count').innerHTML = xhr.response.length;
-	}
+
+	xhr.addEventListener("readystatechange", function(e){
+		if(xhr.readyState === 4 && xhr.status === 200){
+			console.log('Test page log: response1', xhr.responseText);
+			document.getElementById('count').innerHTML = xhr.responseText;
+		}
+	}, false);
+
+	xhr.open("GET", "/r1.js", true);
 	xhr.send();
 
 	document.getElementById('click-me').onclick = function(){
 
 		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "r2.js", true);
-		xhr.onload = function(e) {
-			document.getElementById('count').innerHTML = xhr.response.length;
-		}
+
+		xhr.addEventListener("readystatechange", function(e){
+			if(xhr.readyState === 4 && xhr.status === 200){
+				console.log('Test page log: response2', xhr.responseText);
+				document.getElementById('count').innerHTML = xhr.responseText;
+			}
+		}, false);
+
+		xhr.open("GET", "/r2.js", true);
 		xhr.send();
 
 		return false;

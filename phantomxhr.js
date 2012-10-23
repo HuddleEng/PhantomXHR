@@ -147,7 +147,6 @@ function fake(options){
 				}
 			}
 
-			console.log("sending mock response");
 			return window._ajaxmock_.fake({
 				url: url,
 				method: method,
