@@ -66,6 +66,6 @@ This method will also let you return a different responseBody on a subsequent re
 
 SinonJS mocks the XHR interface in a particular way, you might have some issues mocking simple XHR calls though jQuery.ajax should work fine.  Cross-domain requests cannot be faked currently.
 
-### Contributers
+### Contributors
 
 + [James Cryer](/jamescryer)
