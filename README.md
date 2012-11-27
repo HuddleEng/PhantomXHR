@@ -1,7 +1,7 @@
 PhantomXHR
 ==========
 
-Integration of SinonJS's mock XHR interface with PhantomJS & CasperJS.
+*Test your UI by faking Ajax requests*. An integration of [SinonJS](http://sinonjs.org/)'s mock XHR interface with [PhantomJS](/ariya/phantomjs/) and [CasperJS](/n1k0/casperjs).
 
 ### Why?
 
@@ -9,7 +9,7 @@ PhantomJS & CasperJS provide an excellent framework in which to test Web applica
 
 The PhantomXHR project has been developed to support testing of Ajax powered Web apps. Using SinonJS, PhantomXHR isolates the UI from its server-side API using mocks to simulate server responses. This allows data-setup within the test-suite, substantially faster than creating real data in the database.
 
-PhantomXHR is not about integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage.
+PhantomXHR is not about integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage. For more complete UI test suite also consider using [PhantomCSS](/Huddle/PhantomCSS) for CSS regression.
 
 ### Example
 
@@ -66,6 +66,7 @@ This method will also let you return a different responseBody on a subsequent re
 
 SinonJS mocks the XHR interface in a particular way, you might have some issues mocking simple XHR calls though jQuery.ajax should work fine.  Cross-domain requests cannot be faked currently.
 
-### Contributors
 
-+ [James Cryer](/jamescryer)
+--------------------------------------
+
+Created by [James Cryer](/jamescryer) and the Huddle development team.
