@@ -9,7 +9,7 @@ PhantomJS & CasperJS provide an excellent framework in which to test Web applica
 
 The PhantomXHR project has been developed to support testing of Ajax powered Web apps. Using SinonJS, PhantomXHR isolates the UI from its server-side API using mocks to simulate server responses. This allows data-setup within the test-suite, substantially faster than creating real data in the database.
 
-PhantomXHR is not about integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage. For more complete UI test suite also consider using [PhantomCSS](/Huddle/PhantomCSS) for CSS regression.
+PhantomXHR is not about integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage. For more complete UI test suite also consider using [PhantomCSS](http://github.com/Huddle/PhantomCSS) for CSS regression.
 
 ### Example
 
