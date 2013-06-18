@@ -31,7 +31,7 @@ Note: Be careful when defining URL matches. Try to keep them specific otherwise 
 
 ### Demo
 
-Please see the [demo](/Huddle/PhantomXHR/tree/master/demo) folder to see an example test suite.
+Please see the [demo](/demo) folder to see an example test suite.
 
 ### API
 
@@ -69,4 +69,4 @@ SinonJS mocks the XHR interface in a particular way, you might have some issues 
 
 --------------------------------------
 
-Created by [James Cryer](/jamescryer) and the Huddle development team.
+Created by [James Cryer](https://github.com/jamescryer) and the Huddle development team.
