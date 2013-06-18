@@ -1,7 +1,7 @@
 PhantomXHR
 ==========
 
-*Test your UI by faking Ajax requests*. An integration of [SinonJS](http://sinonjs.org/)'s mock XHR interface with [PhantomJS](/ariya/phantomjs/) and [CasperJS](/n1k0/casperjs).
+*Test your UI by faking Ajax requests*. An integration of [SinonJS](http://sinonjs.org/)'s mock XHR interface with [PhantomJS](http://github.com/ariya/phantomjs/) and [CasperJS](http://github.com/n1k0/casperjs).
 
 ### Why?
 
