@@ -1,0 +1,29 @@
+{
+  "name": "phantomxhr",
+  "version": "0.0.1",
+  "description": "Ajax mocking. A SinonJS XHR wrapper for CasperJS.",
+  "main": "phantomxhr.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Huddle/PhantomXHR.git"
+  },
+  "keywords": [
+    "sinonjs",
+    "sinon",
+    "ajax",
+    "casperjs",
+    "testing",
+    "test",
+    "tdd",
+    "bdd",
+    "mocking",
+    "xhr",
+    "phantomjs",
+  ],
+  "author": "James Cryer",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Huddle/PhantomXHR/issues"
+  },
+  "homepage": "https://github.com/Huddle/PhantomXHR"
+}
