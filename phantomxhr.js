@@ -1,19 +1,69 @@
-exports.init = init;
+var require = patchRequire(require);
+
+exports.init = phantomXHRInit;
 exports.fake = fake;
 exports.requests = getAllRequests;
 
 var page;
 
-function init(initPage, libraryRoot){
-	var root = libraryRoot ? libraryRoot : '.';
-	var inject = initPage.injectJs(root+'/sinon.js');
+function phantomXHRInit(initPage, options){
+	
+	var inject = false;
 
-	page = initPage;
+	options = options || {};
 
+	if(initPage.injectJs){
+
+		initPage.evaluate(function(){
+			// Shim these constructors to make progress events work in PhantomJS
+    		window.ProgressEvent = function(){};
+    		window.CustomEvent = function(){};
+		});
+
+		inject = initPage.injectJs(options.libraryRoot ? (options.libraryRoot + 'sinon.js') : './modules/PhantomXHR/sinon.js');
+
+		initPage.evaluate(function(){
+
+			// A naive implementation for simulating upload events
+		    function FakeEvent(type, bubbles, cancelable, target) {
+		        this.initEvent(type, bubbles, cancelable, target);
+		    };
+
+			FakeEvent.prototype = {
+				initEvent: function(type, event, cancelable, target) {
+					var key;
+
+					this.type = type;
+					this.bubbles = event;
+					this.lengthComputable = true;
+					this.isTrusted = true;
+					this.cancelable = cancelable;
+					this.target = target;
+					this.loaded = 0;
+					this.total = 0;
+
+					for ( key in event ){
+						this[key] = event[key];
+					}
+				},
+				stopPropagation: function () {},
+				stopImmediatePropagation: function () {},
+				preventDefault: function () {
+					this.defaultPrevented = true;
+				}
+			};
+
+    		window.ProgressEvent = FakeEvent;
+    		window.CustomEvent = FakeEvent;
+		});
+
+	}
+	
 	if(inject){
+		page = initPage;
 		setup();
 	} else {
-		console.log("Can't find sinon.js");
+		console.log("[PhantomXHR] Can't find sinon.js");
 	}
 }
 
@@ -40,11 +90,13 @@ function setup(){
 
 					match.guid = guid;
 					match.url = match.url.replace('REGEXP', '');
-					
-					console.log('[FAKE XHR] Match added [' + (match.method || 'All REST verbs') + "] : " + match.url + "'");
+
+					console.log('[PhantomXHR] Match added [' + (match.method || 'All REST verbs') + "] : " + match.url + "'");
 
 					match.requests = [];
 					match.responses = [];
+					match.respondMethods = [];
+
 					window._ajaxmock_.call[guid] = match;
 
 					window._ajaxmock_.matches.push(function (method, url) {
@@ -68,6 +120,8 @@ function setup(){
 				init: function () {
 					var _xhr = window.sinon.useFakeXMLHttpRequest();
 
+					_xhr.upload = document.createElement('div');
+
 					_xhr.onCreate = function (request) {
 
 						setTimeout(function () {
@@ -75,7 +129,7 @@ function setup(){
 							var requests = window._ajaxmock_.requests;
 
 							if (!request.url) {
-								console.log('NO XHR URL');
+								console.log('[PhantomXHR] NO XHR URL');
 								return;
 							} // this shouldn't happen, but sometimes does
 							// store the request for later matching
@@ -88,16 +142,14 @@ function setup(){
 								};
 							}
 
-							window._ajaxmock_.matches.forEach(function (func) {
+							window._ajaxmock_.matches.reverse().forEach(function (func) {
 								anyMatches = anyMatches || func(request.method, request.url);
 							});
 
 							if (anyMatches) {
-
 								respond(request, anyMatches);
-
 							} else {
-								console.log('[FAKE XHR] did not respond to ' + request.url);
+								console.log('[PhantomXHR] did not respond to ' + request.method + ' ' + request.url);
 							}
 						}, 100);
 					};
@@ -107,13 +159,19 @@ function setup(){
 		}
 
 		function respond(request, response) {
+
+			if(!window._ajaxmock_){
+				console.log('[PhantomXHR] could not respond, window._ajaxmock_ does not exist.');
+				return;
+			}
+
 			var call = window._ajaxmock_.call;
 			var callForThisMatch;
 			var responseForThisMatch;
 			var status;
 			var body;
 
-			console.log('[FAKE XHR] gonna respond to ' + request.method + ": " + request.url + "'");
+			console.log('[PhantomXHR] recieved request for ' + request.method + ": " + request.url + "'");
 
 			callForThisMatch = call[response.guid];
 			callForThisMatch.requests.push(request);
@@ -123,23 +181,54 @@ function setup(){
 			if (responseForThisMatch) {
 				status = responseForThisMatch.status;
 				body = responseForThisMatch.responseBody;
+				console.log('[PhantomXHR] with status: ' + responseForThisMatch.status);
 			}
 
-			request.respond(
-			status || response.status || 200, response.headers || {
-				"Content-Type": "application/json"
-			}, body || response.responseBody || '');
+			console.log('[PhantomXHR] with status: ' + response.status);
+
+			if(response.holdResponse){
+			
+				callForThisMatch.respondMethods.push(function(responseOverride){
+					responseOverride = responseOverride || response;
+
+					console.log('[PhantomXHR] Responding to postponed ' + request.method + ": " + request.url + "'");
+
+					request.respond(
+						status || responseOverride.status || 200, responseOverride.headers || {
+							"Content-Type": "application/json"
+						}, 
+						body || responseOverride.responseBody || ''
+					);
+				});
+
+			} else {
+				console.log('[PhantomXHR] Responding to ' + request.method + ": " + request.url + "'");
+				
+				console.log('[PhantomXHR] status ', status , response.status , 200);
+
+				request.respond(
+					status || response.status || 200, response.headers || {
+						"Content-Type": "application/json"
+					}, 
+					body || response.responseBody || ''
+				);
+			}
+
 		}
 	});
 }
 
-function fake(options){
-
+function fake(options) {
 	var url = !! options.url.source ? 'REGEXP' + options.url.source : options.url;
-	var guid = page.evaluate(function (url, method, responseBody, status) {
+
+	if(typeof(options.responseBody) === "object"){
+		options.responseBody = JSON.stringify(options.responseBody);
+	}
+
+	var guid = page.evaluate(function (url, method, responseBody, status, headers, holdResponse) {
 		if (window._ajaxmock_ && url) {
 
-			if (responseBody) {
+			if (responseBody && headers && headers["Content-Type"] && headers["Content-Type"] === "application/json") {
 				try {
 					JSON.parse(responseBody);
 				} catch (e) {
@@ -147,32 +236,70 @@ function fake(options){
 				}
 			}
 
+			console.log("[PhantomXHR] Sending mock response for " + url);
+
 			return window._ajaxmock_.fake({
 				url: url,
 				method: method,
 				responseBody: responseBody,
-				status: status
+				status: status,
+				headers: headers,
+				holdResponse: holdResponse
 			});
 		}
-	}, url, options.method, options.responseBody, options.status );
+	}, url, options.method, options.responseBody, options.status, options.headers, !!options.holdResponse);
 
 	if (guid === 'JSON') {
-		console.log('[FAKE FAILED] JSON was invalid : ' + options.method + ' : ' + url);
+		console.log('[PhantomXHR] JSON was invalid : ' + options.method + ' : ' + url);
 	}
 
 	return {
-
 		count: function () {
-			return page.evaluate(function (guid) {
+			var c = page.evaluate(function (guid) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
 				return window._ajaxmock_.call[guid].requests.length;
 			}, guid);
+
+			if(typeof c === 'undefined'){
+				console.log('[PhantomXHR] Could not get count');
+			}
+
+			return c;
 		},
 
 		nthRequest: function (index) {
-			return page.evaluate(function (guid, index) {
+			var r = page.evaluate(function (guid, index) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
 				var request = window._ajaxmock_.call[guid].requests[index - 1];
 				return request.requestBody;
 			}, guid, index);
+
+			if(typeof r === 'undefined'){
+				console.log('[PhantomXHR] Could not get request');
+			}
+
+			return r;
+		},
+
+		nthRequestOrNull: function (index) {
+			var r = page.evaluate(function (guid, index) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
+				var request = window._ajaxmock_.call[guid].requests[index - 1];
+				if (!request) { return null; }
+				return request;
+			}, guid, index);
+
+			if(typeof r === 'undefined'){
+				console.log('[PhantomXHR] Could not get request');
+			}
+
+			return r;
 		},
 
 		last: function () {
@@ -187,13 +314,111 @@ function fake(options){
 			return this.nthRequest(1);
 		},
 
+		firstOrNull: function () {
+			return this.nthRequestOrNull(1);
+		},
+
 		nthResponse: function (num, response) {
-			page.evaluate(function (guid, num, response) {
+			var r = page.evaluate(function (guid, num, response) {
+				if (typeof(response.responseBody) === "object") {
+					response.responseBody = JSON.stringify(response.responseBody);
+				}
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
 				window._ajaxmock_.call[guid].responses[num] = response;
+				return true;
 			}, guid, num, response );
 
+			if(typeof r === 'undefined'){
+				console.log('[PhantomXHR] Could not set response');
+			}
+
 			return this;
-		}
+		},
+
+		nthProgress: function(nth, event){
+
+			function isNumber(n) {
+				return !isNaN(parseFloat(n)) && isFinite(n);
+			}
+
+			if( isNumber(event.loaded) && isNumber(event.total) ){
+				page.evaluate(function (guid, nth, event) {
+					var mock = window._ajaxmock_;
+					var req;
+
+					if( !(mock && mock.call[guid]) ){
+						return;
+					}
+
+					req = mock.call[guid].requests[nth];
+
+					if(req){
+						req.uploadProgress(event);
+					}
+					
+				}, guid, nth, event);
+			} else {
+				console.log('[PhantomXHR] Could not set progress');
+			}
+		},
+		
+		respond: function(response){
+			// if you don't want to respond immediately
+			
+			page.evaluate(function (guid, response) {
+				var placeholder = 'placeholder';
+				var si;
+				var item;
+
+				function processResponse(){
+					var res;
+					var method;
+					var item = window._ajaxmock_.call[guid];
+					var queue = item.queuedResponses;
+
+					if(queue && item.respondMethods.length){
+
+						res = queue.shift();
+						method = item.respondMethods.shift();
+						if(method){
+							method(res === placeholder ? void 0 : res);
+						}
+
+						if(si) {
+							clearInterval(si);
+						}
+
+						return true;
+					}
+					return false;
+				}
+
+				response =  response || placeholder;
+
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
+
+				item = window._ajaxmock_.call[guid];
+
+				if(!item.queuedResponses) {
+					item.queuedResponses = [];
+				}
+
+				item.queuedResponses = [];
+				item.queuedResponses.push(response);
+
+				if(!processResponse()){
+					si = setInterval(processResponse,50);	
+				}
+
+			}, guid, response);
+		},
+
+		uri: options.url,
+		method: options.method
 	};
 }
 
