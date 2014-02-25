@@ -18,7 +18,7 @@
     "bdd",
     "mocking",
     "xhr",
-    "phantomjs",
+    "phantomjs"
   ],
   "author": "James Cryer",
   "license": "MIT",
