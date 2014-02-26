@@ -326,7 +326,7 @@ function fake(options) {
 				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
 					return;
 				}
-				window._ajaxmock_.call[guid].responses[num] = response;
+				window._ajaxmock_.call[guid].responses[num-1] = response;
 				return true;
 			}, guid, num, response );
 
@@ -352,7 +352,7 @@ function fake(options) {
 						return;
 					}
 
-					req = mock.call[guid].requests[nth];
+					req = mock.call[guid].requests[nth-1];
 
 					if(req){
 						req.uploadProgress(event);
@@ -364,10 +364,10 @@ function fake(options) {
 			}
 		},
 		
-		respond: function(response){
+		nthRespond: function(nth, response){
 			// if you don't want to respond immediately
 			
-			page.evaluate(function (guid, response) {
+			page.evaluate(function (guid, nth, response) {
 				var placeholder = 'placeholder';
 				var si;
 				var item;
@@ -380,8 +380,8 @@ function fake(options) {
 
 					if(queue && item.respondMethods.length){
 
-						res = queue.shift();
-						method = item.respondMethods.shift();
+						res = queue[nth-1];
+						method = item.respondMethods[nth-1];
 						if(method){
 							method(res === placeholder ? void 0 : res);
 						}
@@ -414,7 +414,15 @@ function fake(options) {
 					si = setInterval(processResponse,50);	
 				}
 
-			}, guid, response);
+			}, guid, nth, response);
+		},
+
+		respond: function(response){
+			return this.nthRespond(1, response);
+		},
+
+		progress: function(event){
+			return this.nthProgress(1, event);
 		},
 
 		uri: options.url,

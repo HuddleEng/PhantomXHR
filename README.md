@@ -1,15 +1,15 @@
 PhantomXHR
 ==========
 
-*Test your UI by faking Ajax requests*. An integration of [SinonJS](http://sinonjs.org/)'s mock XHR interface with [PhantomJS](http://github.com/ariya/phantomjs/) and [CasperJS](http://github.com/n1k0/casperjs).
+**Drive UI from faked XHR responses and test your UI in isolation**. [A CasperJS](http://github.com/n1k0/casperjs) module that wraps the XHR faking abilities of [SinonJS](http://sinonjs.org/).
 
 ### Why?
 
-PhantomJS & CasperJS provide an excellent framework in which to test Web applications.  Unfortunately, with any complex Web application there is a lot of data setup necessary.  This data setup slows down the running of tests, reducing feedback time.
+The PhantomXHR library has been developed to support testing of Ajax powered Web apps. Using SinonJS, PhantomXHR isolates the UI from its server-side API using stubs and mocking to simulate server responses. This allows test data-setup within the test-suite, substantially faster than creating data in the database.
 
-The PhantomXHR project has been developed to support testing of Ajax powered Web apps. Using SinonJS, PhantomXHR isolates the UI from its server-side API using mocks to simulate server responses. This allows data-setup within the test-suite, substantially faster than creating real data in the database.
+PhantomXHR is not for integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage.
 
-PhantomXHR is not about integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage. For more complete UI test suite also consider using [PhantomCSS](http://github.com/Huddle/PhantomCSS) for CSS regression.
+For more complete UI test suite also consider using [PhantomCSS](http://github.com/Huddle/PhantomCSS) for CSS regression.
 
 ### Example
 
@@ -17,7 +17,9 @@ PhantomXHR is not about integration testing, it's about testing the UI as a sepa
 
 var xhr = require('./modules/phantomxhr.js');
 
-xhr.init(casper.page, './modules');
+xhr.init(casper.page, {
+  libraryRoot: './modules'
+});
 
 xhr.fake({
   url: /object\/([0-9]+\?)/,
@@ -29,9 +31,18 @@ In the above case, if an API call to 'something/object/48546?' is requested by t
 
 Note: Be careful when defining URL matches. Try to keep them specific otherwise you may find that the wrong XHR fake is responding.
 
-### Demo
+### How to use
 
-Please see the [demo](/demo) folder to see an example test suite.
+If your not already using CasperJS, first [install CasperJS](http://docs.casperjs.org/en/latest/installation.html) and set up a test for an app that uses Ajax.
+
+To install, try one of these
+* `npm install phantomxhr --save-dev`
+* `bower install phantomxhr`
+* `git clone git://github.com/Huddle/PhantomXHR.git`
+
+Now, in your test, simple require the PhantomXHR module.
+
+`var xhr = require('{yourpath}/phantomxhr.js');`
 
 ### API
 
@@ -62,10 +73,25 @@ deleteRequest.nthResponse(2,{
 
 This method will also let you return a different responseBody on a subsequent request.
 
-### Limitations
+### Hold, progress, respond
 
-SinonJS mocks the XHR interface in a particular way, you might have some issues mocking simple XHR calls though jQuery.ajax should work fine.  Cross-domain requests cannot be faked currently.
+```javascript
+var uploadRequest = xhr.fake({
+  url: /object\/([0-9]+\?)/upload,
+  method: 'post',
+  holdResponse: true
+});
 
+// Progress of first 
+uploadRequest.progress(1, { loaded: 25, total: 100 });
+
+// Complete the first call
+uploadRequest.respond( /*optionalResponseOverride*/ );
+
+// uploadRequest.nthProgress(2, { loaded: 25, total: 100 });
+// uploadRequest.nthRespond(2, /*optionalResponseOverride*/ );
+
+```
 
 --------------------------------------
 
