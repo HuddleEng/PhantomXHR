@@ -77,12 +77,12 @@ This method will also let you return a different responseBody on a subsequent re
 
 ```javascript
 var uploadRequest = xhr.fake({
-  url: /object\/([0-9]+\?)/upload,
+  url: /object\/([0-9]+\?)\/upload/,
   method: 'post',
   holdResponse: true
 });
 
-// Progress of first 
+// Progress of first
 uploadRequest.progress(1, { loaded: 25, total: 100 });
 
 // Complete the first call
