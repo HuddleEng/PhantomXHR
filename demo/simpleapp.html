@@ -1,0 +1,70 @@
+<html>
+
+<head>
+	<title>PhantomXHR Test App</title>
+</head>
+
+<body>
+
+	<input id="input" type="text" value="" />
+	<a href="#" id="button">POST data</a>
+
+	<span id="msg"></span>
+
+</body>
+
+<script>
+
+	var xhr = new XMLHttpRequest();
+
+	xhr.addEventListener('readystatechange', function(e){
+		var res;
+		var mess;
+
+		if(xhr.readyState == 4){
+			if(xhr.status == 200){
+				res = JSON.parse(xhr.responseText);
+
+				if(res.successMessage){
+					mess = res.successMessage;
+				}
+			} else {
+				mess = "Generic failure message";
+			}
+		}
+		document.getElementById('msg').innerHTML = mess;
+	}, false);
+
+	xhr.open("GET", "/api/collection/1234", true);
+	xhr.send();
+
+	document.getElementById('button').onclick = function(){
+
+		var xhr = new XMLHttpRequest();
+		var mess;
+
+		xhr.addEventListener("readystatechange", function(e){
+			if(xhr.readyState === 4){
+				if(xhr.status === 200){
+					mess = "Generic POST success message";
+				} else {
+					mess = "Generic POST failure message";
+				}
+				document.getElementById('msg').innerHTML = mess;
+			}
+		}, false);
+
+		xhr.open("post", "/api/collection/1234", true);
+		xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+		xhr.send(JSON.stringify({
+			value: (document.getElementById('input').value||''),
+		}));
+
+		return false;
+	};
+
+</script>
+
+
+</html>

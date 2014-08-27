@@ -1,15 +1,23 @@
 PhantomXHR
 ==========
 
-**Drive UI from faked XHR responses and test your UI in isolation**. [A CasperJS](http://github.com/n1k0/casperjs) module that wraps the XHR faking abilities of [SinonJS](http://sinonjs.org/).
+**Control Web UI application flow with fake XHR responses. Test your UI in isolation!**. [A CasperJS](http://github.com/n1k0/casperjs) module that wraps the XHR faking abilities of [SinonJS](http://sinonjs.org/). For testing rich Ajax driven web applications.
 
-### Why?
+### What?
 
-The PhantomXHR library has been developed to support testing of Ajax powered Web apps. Using SinonJS, PhantomXHR isolates the UI from its server-side API using stubs and mocking to simulate server responses. This allows test data-setup within the test-suite, substantially faster than creating data in the database.
+An Ajax driven app can be tested in isolation by mocking or stubbing XHR interactions. Isolated tests are faster and more stable because they are less at risk from faults in external and peripheral dependencies such as server-side logic and network connectivity. PhantomXHR takes full control of the XHR layer, blocking **all** XHR requests to the server and reacting instead with responses defined by the test engineer within the test itself.  PhantomXHR provides the freedom to exercise all code paths, like error handling, paths that would usually be nondeterministic.
 
-PhantomXHR is not for integration testing, it's about testing the UI as a separate concern and should be used alongside other tools to ensure complete test coverage.
+![PhantomXHR acts as a facade for XHR interactions](https://raw.github.com/Huddle/PhantomXHR/master/readme_assets/sequence.png "PhantomXHR acts as a facade for XHR interactions")
 
-For more complete UI test suite also consider using [PhantomCSS](http://github.com/Huddle/PhantomCSS) for CSS regression.
+### Download
+
+* `npm install phantomxhr`
+* `bower install phantomxhr`
+* `git clone git://github.com/Huddle/PhantomXHR.git
+
+### Demo
+
+* `casperjs test demo/test.js`
 
 ### Example
 
@@ -30,19 +38,6 @@ xhr.fake({
 In the above case, if an API call to 'something/object/48546?' is requested by the JS app under test, the app will receive the given mocked response.
 
 Note: Be careful when defining URL matches. Try to keep them specific otherwise you may find that the wrong XHR fake is responding.
-
-### How to use
-
-If your not already using CasperJS, first [install CasperJS](http://docs.casperjs.org/en/latest/installation.html) and set up a test for an app that uses Ajax.
-
-To install, try one of these
-* `npm install phantomxhr --save-dev`
-* `bower install phantomxhr`
-* `git clone git://github.com/Huddle/PhantomXHR.git`
-
-Now, in your test, simple require the PhantomXHR module.
-
-`var xhr = require('{yourpath}/phantomxhr.js');`
 
 ### API
 
@@ -71,7 +66,7 @@ deleteRequest.nthResponse(2,{
 });
 ```
 
-This method will also let you return a different responseBody on a subsequent request.
+This method will also let you return a different responseBody on a subsequent request, great for testing uploads.
 
 ### Hold, progress, respond
 

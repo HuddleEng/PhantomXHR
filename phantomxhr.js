@@ -129,7 +129,7 @@ function setup(){
 							var requests = window._ajaxmock_.requests;
 
 							if (!request.url) {
-								console.log('[PhantomXHR] NO XHR URL');
+								console.log('[PhantomXHR] XHR has been initialised but not opened.');
 								return;
 							} // this shouldn't happen, but sometimes does
 							// store the request for later matching
@@ -235,8 +235,6 @@ function fake(options) {
 					return 'JSON';
 				}
 			}
-
-			console.log("[PhantomXHR] Sending mock response for " + url);
 
 			return window._ajaxmock_.fake({
 				url: url,
