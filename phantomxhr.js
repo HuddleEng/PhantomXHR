@@ -7,7 +7,7 @@ exports.requests = getAllRequests;
 var page;
 
 function phantomXHRInit(initPage, options){
-	
+
 	var inject = false;
 
 	options = options || {};
@@ -20,7 +20,7 @@ function phantomXHRInit(initPage, options){
     		window.CustomEvent = function(){};
 		});
 
-		inject = initPage.injectJs(options.libraryRoot ? (options.libraryRoot + 'sinon.js') : './modules/PhantomXHR/sinon.js');
+		inject = initPage.injectJs(options.libraryRoot ? (options.libraryRoot + 'sinon.js') : './node_modules/phantomxhr/sinon.js');
 
 		initPage.evaluate(function(){
 
@@ -58,7 +58,7 @@ function phantomXHRInit(initPage, options){
 		});
 
 	}
-	
+
 	if(inject){
 		page = initPage;
 		setup();
@@ -187,7 +187,7 @@ function setup(){
 			console.log('[PhantomXHR] with status: ' + response.status);
 
 			if(response.holdResponse){
-			
+
 				callForThisMatch.respondMethods.push(function(responseOverride){
 					responseOverride = responseOverride || response;
 
@@ -196,20 +196,20 @@ function setup(){
 					request.respond(
 						status || responseOverride.status || 200, responseOverride.headers || {
 							"Content-Type": "application/json"
-						}, 
+						},
 						body || responseOverride.responseBody || ''
 					);
 				});
 
 			} else {
 				console.log('[PhantomXHR] Responding to ' + request.method + ": " + request.url + "'");
-				
+
 				console.log('[PhantomXHR] status ', status , response.status , 200);
 
 				request.respond(
 					status || response.status || 200, response.headers || {
 						"Content-Type": "application/json"
-					}, 
+					},
 					body || response.responseBody || ''
 				);
 			}
@@ -355,16 +355,16 @@ function fake(options) {
 					if(req){
 						req.uploadProgress(event);
 					}
-					
+
 				}, guid, nth, event);
 			} else {
 				console.log('[PhantomXHR] Could not set progress');
 			}
 		},
-		
+
 		nthRespond: function(nth, response){
 			// if you don't want to respond immediately
-			
+
 			page.evaluate(function (guid, nth, response) {
 				var placeholder = 'placeholder';
 				var si;
@@ -409,7 +409,7 @@ function fake(options) {
 				item.queuedResponses.push(response);
 
 				if(!processResponse()){
-					si = setInterval(processResponse,50);	
+					si = setInterval(processResponse,50);
 				}
 
 			}, guid, nth, response);
