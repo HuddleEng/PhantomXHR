@@ -120,6 +120,12 @@ function setup(){
 				init: function () {
 					var _xhr = window.sinon.useFakeXMLHttpRequest();
 
+					// overrideMimeType is not mocked see this issue
+					// https://github.com/cjohansen/Sinon.JS/issues/559
+					window.sinon.FakeXMLHttpRequest.prototype.overrideMimeType = function() {return;}
+					
+					// we backup _xhr object
+					window.backup_xhr = _xhr;
 					_xhr.upload = document.createElement('div');
 
 					_xhr.onCreate = function (request) {
@@ -360,6 +366,12 @@ function fake(options) {
 			} else {
 				console.log('[PhantomXHR] Could not set progress');
 			}
+		},
+
+		restore: function(){
+			page.evaluate(function(){
+				window.backup_xhr.restore();
+			});
 		},
 
 		nthRespond: function(nth, response){
