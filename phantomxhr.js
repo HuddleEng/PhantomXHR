@@ -8,6 +8,7 @@ exports.completed = allRequestsCompleted;
 var page;
 
 function phantomXHRInit(initPage, options){
+	var fs = require('fs');
 
 	var inject = false;
 
@@ -21,7 +22,7 @@ function phantomXHRInit(initPage, options){
     		window.CustomEvent = function(){};
 		});
 
-		inject = initPage.injectJs(options.libraryRoot ? (options.libraryRoot + 'sinon.js') : './node_modules/phantomxhr/sinon.js');
+		inject = initPage.injectJs(options.libraryRoot ? (fs.absolute(options.libraryRoot) + 'sinon.js') : './node_modules/phantomxhr/sinon.js');
 
 		initPage.evaluate(function(){
 
