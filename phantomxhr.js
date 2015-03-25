@@ -3,6 +3,7 @@ var require = patchRequire(require);
 exports.init = phantomXHRInit;
 exports.fake = fake;
 exports.requests = getAllRequests;
+exports.completed = allRequestsCompleted;
 
 var page;
 
@@ -73,6 +74,8 @@ function setup(){
 		if (!window._ajaxmock_) {
 			window._ajaxmock_ = {
 				matches: [],
+				requests_created: 0,
+				requests_completed: 0,
 				requests: {},
 				call: {},
 				fake: function (match) {
@@ -130,6 +133,7 @@ function setup(){
 
 					_xhr.onCreate = function (request) {
 
+						window._ajaxmock_.requests_created++;
 						setTimeout(function () {
 							var anyMatches = false;
 							var requests = window._ajaxmock_.requests;
@@ -156,6 +160,7 @@ function setup(){
 								respond(request, anyMatches);
 							} else {
 								console.log('[PhantomXHR] did not respond to ' + request.method + ' ' + request.url);
+								window._ajaxmock_.requests_completed++;
 							}
 						}, 100);
 					};
@@ -205,6 +210,8 @@ function setup(){
 						},
 						body || responseOverride.responseBody || ''
 					);
+
+					window._ajaxmock_.requests_completed++;
 				});
 
 			} else {
@@ -218,6 +225,8 @@ function setup(){
 					},
 					body || response.responseBody || ''
 				);
+
+				window._ajaxmock_.requests_completed++;
 			}
 
 		}
@@ -452,4 +461,15 @@ function getAllRequests() {
 	});
 
 	return requests;
+}
+
+function allRequestsCompleted() {
+	return page.evaluate(function () {
+
+		if (window._ajaxmock_) {
+			return window._ajaxmock_.requests_created === window._ajaxmock_.requests_completed;
+		}
+
+		return false;
+	});
 }
