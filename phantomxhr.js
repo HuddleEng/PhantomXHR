@@ -63,14 +63,14 @@ function phantomXHRInit(initPage, options){
 
 	if(inject){
 		page = initPage;
-		setup();
+		setup(options);
 	} else {
 		console.log("[PhantomXHR] Can't find sinon.js");
 	}
 }
 
-function setup(){
-	page.evaluate(function () {
+function setup(options){
+	page.evaluate(function (options) {
 
 		if (!window._ajaxmock_) {
 			window._ajaxmock_ = {
@@ -127,9 +127,22 @@ function setup(){
 					// overrideMimeType is not mocked see this issue
 					// https://github.com/cjohansen/Sinon.JS/issues/559
 					window.sinon.FakeXMLHttpRequest.prototype.overrideMimeType = function() {return;}
-					
+
 					// we backup _xhr object
 					window.backup_xhr = _xhr;
+
+					// If need create real XHR (by default false)
+					if (options.allowRealRequests) {
+						_xhr.useFilters = true;
+						_xhr.addFilter(function(method, url) {
+							var anyMatches = false;
+							window._ajaxmock_.matches.reverse().forEach(function (func) {
+								anyMatches = anyMatches || func(method, url);
+							});
+							return !anyMatches;
+						});
+					}
+
 					_xhr.upload = document.createElement('div');
 
 					_xhr.onCreate = function (request) {
@@ -231,7 +244,7 @@ function setup(){
 			}
 
 		}
-	});
+	}, options);
 }
 
 function fake(options) {
