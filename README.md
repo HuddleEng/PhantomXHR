@@ -78,7 +78,7 @@ var uploadRequest = xhr.fake({
 });
 
 // Progress of first
-uploadRequest.progress(1, { loaded: 25, total: 100 });
+uploadRequest.progress({ loaded: 25, total: 100 });
 
 // Complete the first call
 uploadRequest.respond( /*optionalResponseOverride*/ );
