@@ -1,6 +1,6 @@
 {
   "name": "phantomxhr",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Ajax mocking. A SinonJS XHR wrapper for CasperJS.",
   "main": "phantomxhr.js",
   "repository": {

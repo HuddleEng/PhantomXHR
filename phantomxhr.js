@@ -332,6 +332,34 @@ function fake(options) {
 			return this.nthRequestOrNull(1);
 		},
 
+        nthRequestHeader: function (index, key) {
+            var r = page.evaluate(function (guid, index) {
+                if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+                    return;
+                }
+                var request = window._ajaxmock_.call[guid].requests[index - 1];
+                return request.requestHeaders;
+            }, guid, index);
+
+            if(typeof r === 'undefined'){
+                console.log('[PhantomXHR] Could not get request');
+            }
+
+            return r[key];
+        },
+
+		lastRequestHeader: function (key) {
+            var last = page.evaluate(function (guid) {
+                return window._ajaxmock_.call[guid].requests.length;
+            }, guid);
+
+            return this.nthRequestHeader(last, key);
+        },
+
+        firstRequestHeader: function (key) {
+            return this.nthRequestHeader(1, key);
+        },
+
 		nthResponse: function (num, response) {
 			var r = page.evaluate(function (guid, num, response) {
 				if (typeof(response.responseBody) === "object") {
