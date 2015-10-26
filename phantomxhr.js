@@ -153,7 +153,7 @@ function setup(){
 								};
 							}
 
-							window._ajaxmock_.matches.reverse().forEach(function (func) {
+							window._ajaxmock_.matches.slice(0).reverse().forEach(function (func) {
 								anyMatches = anyMatches || func(request.method, request.url);
 							});
 
