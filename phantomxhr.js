@@ -358,7 +358,7 @@ function fake(options) {
                 console.log('[PhantomXHR] Could not get request');
             }
 
-            return r[key];
+            return r ? r[key] : null;
         },
 
 		lastRequestHeader: function (key) {
@@ -485,6 +485,19 @@ function fake(options) {
 		progress: function(event){
 			return this.nthProgress(1, event);
 		},
+
+        hold: function(){
+            page.evaluate(function (guid) {
+                if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+                    return;
+                }
+                window._ajaxmock_.call[guid].holdResponse = true;
+            }, guid);
+        },
+
+        progress: function(event){
+            return this.nthProgress(1, event);
+        },
 
 		uri: options.url,
 		method: options.method
