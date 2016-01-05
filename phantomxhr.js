@@ -136,7 +136,7 @@ function setup(options){
 						_xhr.useFilters = true;
 						_xhr.addFilter(function(method, url) {
 							var anyMatches = false;
-							window._ajaxmock_.matches.reverse().forEach(function (func) {
+							window._ajaxmock_.matches.slice(0).reverse().forEach(function (func) {
 								anyMatches = anyMatches || func(method, url);
 							});
 							return !anyMatches;
