@@ -196,7 +196,7 @@ function setup(options){
 			var status;
 			var body;
 
-			console.log('[PhantomXHR] recieved request for ' + request.method + ": " + request.url + "'");
+			console.log('[PhantomXHR] received request for ' + request.method + ": " + request.url + "'");
 
 			callForThisMatch = call[response.guid];
 			callForThisMatch.requests.push(request);
