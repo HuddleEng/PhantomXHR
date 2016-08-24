@@ -4,12 +4,11 @@ exports.init = phantomXHRInit;
 exports.fake = fake;
 exports.requests = getAllRequests;
 exports.completed = allRequestsCompleted;
+exports.clearfakes = clearfakes;
 
 var page;
 
 function phantomXHRInit(initPage, options){
-	var fs = require('fs');
-
 	var inject = false;
 
 	options = options || {};
@@ -18,8 +17,8 @@ function phantomXHRInit(initPage, options){
 
 		initPage.evaluate(function(){
 			// Shim these constructors to make progress events work in PhantomJS
-    		window.ProgressEvent = function(){};
-    		window.CustomEvent = function(){};
+			window.ProgressEvent = function(){};
+			window.CustomEvent = function(){};
 		});
 
 		inject = initPage.injectJs(options.libraryRoot ? (fs.absolute(options.libraryRoot) + 'sinon.js') : './node_modules/phantomxhr/sinon.js');
@@ -27,9 +26,9 @@ function phantomXHRInit(initPage, options){
 		initPage.evaluate(function(){
 
 			// A naive implementation for simulating upload events
-		    function FakeEvent(type, bubbles, cancelable, target) {
-		        this.initEvent(type, bubbles, cancelable, target);
-		    };
+			function FakeEvent(type, bubbles, cancelable, target) {
+				this.initEvent(type, bubbles, cancelable, target);
+			}
 
 			FakeEvent.prototype = {
 				initEvent: function(type, event, cancelable, target) {
@@ -55,8 +54,8 @@ function phantomXHRInit(initPage, options){
 				}
 			};
 
-    		window.ProgressEvent = FakeEvent;
-    		window.CustomEvent = FakeEvent;
+			window.ProgressEvent = FakeEvent;
+			window.CustomEvent = FakeEvent;
 		});
 
 	}
@@ -81,12 +80,12 @@ function setup(options){
 				call: {},
 				fake: function (match) {
 
-					function S4() {
+					function s4() {
 						return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
 					}
 
 					function makeGuid() {
-						return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+						return (s4() + s4() + "-" + s4() + "-" + s4() + "-" + s4() + "-" + s4() + s4() + s4());
 					}
 
 					var urlIsString = match.url.indexOf('REGEXP') === -1;
@@ -126,7 +125,7 @@ function setup(options){
 
 					// overrideMimeType is not mocked see this issue
 					// https://github.com/cjohansen/Sinon.JS/issues/559
-					window.sinon.FakeXMLHttpRequest.prototype.overrideMimeType = function() {return;}
+					window.sinon.FakeXMLHttpRequest.prototype.overrideMimeType = function(){};
 
 					// we backup _xhr object
 					window.backup_xhr = _xhr;
@@ -196,42 +195,13 @@ function setup(options){
 			var status;
 			var body;
 
-			console.log('[PhantomXHR] received request for ' + request.method + ": " + request.url + "'");
-
-			callForThisMatch = call[response.guid];
-			callForThisMatch.requests.push(request);
-
-			responseForThisMatch = callForThisMatch.responses[callForThisMatch.requests.length];
-
-			if (responseForThisMatch) {
-				status = responseForThisMatch.status;
-				body = responseForThisMatch.responseBody;
-				console.log('[PhantomXHR] with status: ' + responseForThisMatch.status);
-			}
-
-			console.log('[PhantomXHR] with status: ' + response.status);
-
-			if(response.holdResponse){
-
-				callForThisMatch.respondMethods.push(function(responseOverride){
-					responseOverride = responseOverride || response;
-
-					console.log('[PhantomXHR] Responding to postponed ' + request.method + ": " + request.url + "'");
-
-					request.respond(
-						status || responseOverride.status || 200, responseOverride.headers || {
-							"Content-Type": "application/json"
-						},
-						body || responseOverride.responseBody || ''
-					);
-
-					window._ajaxmock_.requests_completed++;
-				});
-
-			} else {
-				console.log('[PhantomXHR] Responding to ' + request.method + ": " + request.url + "'");
-
-				console.log('[PhantomXHR] status ', status , response.status , 200);
+			function doRespond(response){
+				if(response.networkUnavailable){
+					request.status = 0;
+					request.statusText = 'timeout';
+					request.abort();
+					return;
+				}
 
 				request.respond(
 					status || response.status || 200, response.headers || {
@@ -241,6 +211,34 @@ function setup(options){
 				);
 
 				window._ajaxmock_.requests_completed++;
+			}
+
+			console.log('[PhantomXHR] received request for ' + request.method + ": " + request.url + "'");
+
+			callForThisMatch = call[response.guid];
+
+			responseForThisMatch = callForThisMatch.responses[callForThisMatch.requests.length];
+
+			callForThisMatch.requests.push(request);
+
+			if (responseForThisMatch) {
+				status = responseForThisMatch.status;
+				body = responseForThisMatch.responseBody;
+			}
+
+			console.log('[PhantomXHR] with status: ' +  status || response.status || 200);
+
+			if(response.holdResponse){
+
+				callForThisMatch.respondMethods.push(function(responseOverride){
+					responseOverride = responseOverride || response;
+					console.log('[PhantomXHR] Responding to postponed ' + request.method + ": " + request.url + "'");
+					doRespond(responseOverride);
+				});
+
+			} else {
+				console.log('[PhantomXHR] Responding to ' + request.method + ": " + request.url + "'");
+				doRespond(response);
 			}
 
 		}
@@ -264,6 +262,8 @@ function fake(options) {
 					return 'JSON';
 				}
 			}
+
+			console.log("[PhantomXHR] Sending mock response for " + url);
 
 			return window._ajaxmock_.fake({
 				url: url,
@@ -345,33 +345,33 @@ function fake(options) {
 			return this.nthRequestOrNull(1);
 		},
 
-        nthRequestHeader: function (index, key) {
-            var r = page.evaluate(function (guid, index) {
-                if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
-                    return;
-                }
-                var request = window._ajaxmock_.call[guid].requests[index - 1];
-                return request.requestHeaders;
-            }, guid, index);
+		nthRequestHeader: function (index, key) {
+			var r = page.evaluate(function (guid, index) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
+				var request = window._ajaxmock_.call[guid].requests[index - 1];
+				return request.requestHeaders;
+			}, guid, index);
 
-            if(typeof r === 'undefined'){
-                console.log('[PhantomXHR] Could not get request');
-            }
+			if(typeof r === 'undefined'){
+				console.log('[PhantomXHR] Could not get request');
+			}
 
-            return r ? r[key] : null;
-        },
+			return r ? r[key] : null;
+		},
 
 		lastRequestHeader: function (key) {
-            var last = page.evaluate(function (guid) {
-                return window._ajaxmock_.call[guid].requests.length;
-            }, guid);
+			var last = page.evaluate(function (guid) {
+				return window._ajaxmock_.call[guid].requests.length;
+			}, guid);
 
-            return this.nthRequestHeader(last, key);
-        },
+			return this.nthRequestHeader(last, key);
+		},
 
-        firstRequestHeader: function (key) {
-            return this.nthRequestHeader(1, key);
-        },
+		firstRequestHeader: function (key) {
+			return this.nthRequestHeader(1, key);
+		},
 
 		nthResponse: function (num, response) {
 			var r = page.evaluate(function (guid, num, response) {
@@ -468,7 +468,6 @@ function fake(options) {
 					item.queuedResponses = [];
 				}
 
-				item.queuedResponses = [];
 				item.queuedResponses.push(response);
 
 				if(!processResponse()){
@@ -479,25 +478,53 @@ function fake(options) {
 		},
 
 		respond: function(response){
-			return this.nthRespond(1, response);
+			var last = page.evaluate(function (guid) {
+				var c = window._ajaxmock_.call[guid]._countRespondRequests;
+				if(c){
+					c+=1;
+				} else {
+					c=1;
+				}
+				window._ajaxmock_.call[guid]._countRespondRequests = c;
+				return c;
+			}, guid);
+
+			return this.nthRespond(last, response);
 		},
 
 		progress: function(event){
-			return this.nthProgress(1, event);
+
+			var last = page.evaluate(function (guid) {
+				var c = window._ajaxmock_.call[guid]._countProgressRequests;
+				if(c){
+					c+=1;
+				} else {
+					c=1;
+				}
+				window._ajaxmock_.call[guid]._countProgressRequests = c;
+				return c;
+			}, guid);
+
+			return this.nthProgress(last, event);
 		},
 
-        hold: function(){
-            page.evaluate(function (guid) {
-                if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
-                    return;
-                }
-                window._ajaxmock_.call[guid].holdResponse = true;
-            }, guid);
-        },
+		unHold: function(){
+			page.evaluate(function (guid) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
+				window._ajaxmock_.call[guid].holdResponse = false;
+			}, guid);
+		},
 
-        progress: function(event){
-            return this.nthProgress(1, event);
-        },
+		hold: function(){
+			page.evaluate(function (guid) {
+				if( !(window._ajaxmock_ && window._ajaxmock_.call[guid] )){
+					return;
+				}
+				window._ajaxmock_.call[guid].holdResponse = true;
+			}, guid);
+		},
 
 		uri: options.url,
 		method: options.method
@@ -526,5 +553,13 @@ function allRequestsCompleted() {
 		}
 
 		return false;
+	});
+}
+
+function clearfakes(){
+	page.evaluate(function () {
+		if (window._ajaxmock_) {
+			window._ajaxmock_.matches = [];
+		}
 	});
 }
