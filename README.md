@@ -1,3 +1,7 @@
+**Unmaintained notice**: As of December 22nd 2017 this project will no longer be maintained. Five years ago PhantomXHR offered a new and exciting promise of testing single page applications without implementing dependency injection and Mockist style unit tests. And for Huddle at least, it was a huge success. But like [PhantomCSS, its time to move on](https://github.com/Huddle/PhantomCSS#why-is-this-project-no-longer-maintained).
+
+
+
 PhantomXHR
 ==========
 
